@@ -1,0 +1,11 @@
+import "html" as H
+
+layout = (title, ...) ->
+  head = H.head \
+          H.title(title),
+          H.meta(attr name: "viewport", content: "width-device-width, initial-scale=1.0"),
+          H.meta(attr charset: "utf-8")
+  body = H.body ...
+  body\append H.div(attr id: "copyright"), "Content &copy;#{os.date "%Y"}"
+  H.doctype H.html head, body
+

@@ -1,20 +1,27 @@
 -- formatted version of jdeseno(@github)'s html.lua
+-- compatible with luacheck and luals
+
+---@diagnostic disable:lowercase-global
 
 local Attr = {}
 local AttrMeta = {
     __index = Attr,
     __tostring = function(attr)
         local str = ""
-        for k,v in pairs(attr.fields) do
+        for k, v in pairs(attr.fields) do
             str = string.format("%s %s=%q", str, k, v)
         end
         return str
-    end
+    end,
 }
 
 function Attr.merge(self, attr)
-    for k,v in pairs(attr.fields) do
-        if self.fields[k] ~= nil then self.fields[k] = self.fields[k] .. " " .. v else self.fields[k] = v end
+    for k, v in pairs(attr.fields) do
+        if self.fields[k] ~= nil then
+            self.fields[k] = self.fields[k] .. " " .. v
+        else
+            self.fields[k] = v
+        end
     end
 end
 
@@ -23,7 +30,7 @@ function is_attr(t)
 end
 
 function attr(fields)
-    return setmetatable({fields=fields}, AttrMeta)
+    return setmetatable({ fields = fields }, AttrMeta)
 end
 
 local Tag = {}
@@ -42,58 +49,63 @@ local TagMeta = {
         else
             return string.format("<%s%s>%s</%s>", tag.name, tag.attributes, tag:content(), tag.name)
         end
-    end
+    end,
 }
 
 function Tag.content(tag)
     local str = ""
-    for i,v in ipairs(tag.contents) do
+    for i, _ in ipairs(tag.contents) do
         str = str .. tag.contents[i]
     end
     return str
 end
 
-function Tag.append(self, ...) 
-    local args = {...}
-    for i,v in ipairs(args) do
-        if is_attr(v) then self:attr(v) else table.insert(self.contents, v) end
+function Tag.append(self, ...)
+    local args = { ... }
+    for _, v in ipairs(args) do
+        if is_attr(v) then
+            self:attr(v)
+        else
+            table.insert(self.contents, v)
+        end
     end
     return self
 end
 
-function Tag.attr(self, attr)
-    self.attributes:merge(attr)
+function Tag.attr(self, tattr)
+    self.attributes:merge(tattr)
     return self
 end
 
 function tag(name, opt, ...)
     return setmetatable({
-        name=name,
-        options=opt,
-        contents={},
-        attributes=attr{}
+        name = name,
+        options = opt,
+        contents = {},
+        attributes = attr({}),
     }, TagMeta):append(...)
 end
 
 local is_singular = {
-    img   = true,
+    img = true,
     input = true,
-    link  = true,
-    meta  = true
+    link = true,
+    meta = true,
 }
 
 return setmetatable({
-    tag=tag,   -- make your own tags
-    attr=attr, -- specify attributes
-    doctype=function(...)
+    tag = tag, -- make your own tags
+    attr = attr, -- specify attributes
+    doctype = function(...)
         -- example custom tag
-        return tag("!DOCTYPE html", {is_singular=true, no_closing_slash=true}, ...)
-    end
+        return tag("!DOCTYPE html", { is_singular = true, no_closing_slash = true }, ...)
+    end,
 }, {
     -- dynamically generate tags
-    __index=function(t, name)
-        t[name] = function(...) return tag(name, {is_singular=is_singular[name]}, ...) end
+    __index = function(t, name)
+        t[name] = function(...)
+            return tag(name, { is_singular = is_singular[name] }, ...)
+        end
         return t[name]
-    end
+    end,
 })
-
