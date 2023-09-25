@@ -1,11 +1,20 @@
-import "html" as H
+import "xml-generator" as xml: H, :declare_generator
 
 layout = (title, ...) ->
-  head = H.head \
-          H.title(title),
-          H.meta(attr name: "viewport", content: "width-device-width, initial-scale=1.0"),
-          H.meta(attr charset: "utf-8")
-  body = H.body ...
-  body\append H.div(attr id: "copyright"), "Content &copy;#{os.date "%Y"}"
-  H.doctype H.html head, body
+  head = H.head
+          * H.title title
+          * H.meta name: "viewport", content: "width-device-width, initial-scale=1.0"
+          * H.meta charset: "utf-8"
+  body = H.body {...}
+  "<!DOCTYPE html>#{H.html {head, body}}"
 
+command = (cmd, res) ->
+  cmd_tag = H.div class: "cmd"
+    * H.span {"$", class: "ps1"}
+    * cmd
+  res_tag = H.div {res, class: "res"}
+  cmd_tag, res_tag
+
+command "whois", "UrNightmaree"
+  |> layout "UrNightmaree", _
+  |> print
